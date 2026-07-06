@@ -71,3 +71,65 @@ do
     fi
   fi
 done
+
+
+###
+
+#!/bin/bash
+
+if [[ $1 == "test" ]]
+then
+  PSQL="psql --username=postgres --dbname=worldcuptest -t --no-align -c"
+else
+  PSQL="psql --username=freecodecamp --dbname=worldcup -t --no-align -c"
+fi
+
+# Do not change code above this line. Use the PSQL variable above to query your database.
+
+
+-----------------------------------------------------------------------------------------
+
+
+#Purga las tablas para evitar duplicidad
+echo $($PSQL "TRUNCATE TABLE teams, games")
+
+cat games.csv | while IFS="," read YEAR ROUND WINNER OPPONENT WINNER_GOALS OPPONENT_GOALS
+do
+
+  #Ignora la primera lìnea(cabecera del csv)
+  if [[ $YEAR != "year" ]]
+  
+  then
+    # Imprimimos las variables para confirmar que se están leyendo bien
+    echo "Leyenfo partido: $WINNER vs $OPPONENT en $YEAR"
+
+    #INSERCION
+
+    #Tabla Teams - WINNER
+
+    #Preguntar a la base si existe el ID
+    WINNER_ID=$($PSQL "SELECT team_id FROM teams WHERE name = '$WINNER' ")
+
+    #Si el ID no existe, se inserta
+    if [[ -z $WINNER_ID ]]
+    then
+
+      #Inserción del equipo en la tabla
+      INSERT_WINNER_RESULT=$($PSQL "INSERT INTO teams(name) VALUES ('$WINNER')")
+
+      #Confirmación de carga exitosa
+      if [[ $INSERT_WINNER_RESULT == "INSERT 0 1" ]]
+      then
+        echo "Nuevo equipo registrado: $WINNER"
+      fi
+
+      #Volvemos a consultar el ID ya creado ¿POR QUÉ?
+      WINNER_ID=$($PSQL "SELECT team_id FROM teams WHERE name = '$WINNER'")
+
+
+    #Tabla Teams - OPPONENT
+
+
+
+  fi
+done
